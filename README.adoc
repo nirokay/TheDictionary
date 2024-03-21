@@ -1,0 +1,6 @@
+= THE Dictionary
+
+== About
+
+**THE Dictionary** is a basic and crappy clone of online, user-run dictionaries
+like https://www.urbandictionary.com/[Urban Dictionary].

@@ -63,6 +63,7 @@ proc newDefinition*(word, definition: string, author: string = "") =
 
     if "" in [word, definition]:
         raise InvalidData.newException("Got an empty string while submitting new definition. Fields word and definition must not be empty!")
+
     withDatabase db:
         if author != "":
             db.exec(sql sqlNewEntry, word, definition, author)
