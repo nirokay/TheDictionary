@@ -55,6 +55,14 @@ SQLite query parameters are also available at your disposal:
 * `/definitions/a%` queries all entries staring with `a`
 * `/definitions/%the%` queries all entries that have `the` in them
 
+== Limitations
+
+For any character, that is not supported by base64 encoding, included in a
+submission, the submission will fail.
+
+Is this fixable? Yes, but this would require refactoring lots of code. Maybe
+I will do this in the future. -v-
+
 == Security
 
 The security of this webserver is unknown and probably contains bugs.
