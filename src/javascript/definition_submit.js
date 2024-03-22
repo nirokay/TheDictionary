@@ -49,8 +49,12 @@ function submitFormButtonPress() {
         "definition": cleanUpString(definition),
         "author": cleanUpString(author)
     })
-    let encoded = btoa(json)
-    window.location.replace("/submit/" + encoded)
+    try {
+        let encoded = btoa(json)
+        window.location.replace("/submit/" + encoded)
+    } catch {
+        alert("Your submission seems to use Base64 unsupported characters. Please replace them with supported ones :(")
+    }
 }
 
 window.onload = function() {
