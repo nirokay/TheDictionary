@@ -10,5 +10,7 @@ const
     sqlInitTables*: string = importSqlQuery "initTables"
     sqlNewEntry*: string = importSqlQuery "newEntry"
     sqlNewEntryAnonymous*: string = importSqlQuery "newEntryAnonymous"
+    sqlNewEntryHash*: string = importSqlQuery "newHash"
     sqlGetDefinitionById*: string = importSqlQuery "getDefinitionById"
     sqlGetDefinitionsByName*: string = importSqlQuery "getDefinitionsByName"
+    sqlGetAllDefinitions*: string = importSqlQuery "getAllDefinitions"

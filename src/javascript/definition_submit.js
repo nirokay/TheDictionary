@@ -6,26 +6,28 @@ const submitAuthorId = "submit-author";
 
 function renderForm() {
     document.getElementById(contentDiv).innerHTML = `
-        <form action="/handle-submit" method="post">
+        <form action="/handle-submit" method="post" class="center">
             <ul>
                 <li>
                     <label for="submit-word">Word:</label>
                     <br />
-                    <input type="text" id="submit-word" name="submit-word" />
-                </li>
-                <li>
-                    <label for="submit-author">Author: (optional)</label>
-                    <br />
-                    <input type="text" id="submit-author" name="submit-author" />
+                    <input type="text" id="submit-word" name="submit-word" placeholder="My interesting word" />
                 </li>
                 <li>
                     <label for="submit-definition">Definition:</label>
                     <br />
-                    <textarea id="submit-definition" name="submit-definition"></textarea>
+                    <textarea id="submit-definition" name="submit-definition" rows="10" placeholder="My interesting definition" ></textarea>
+                </li>
+                <li>
+                    <label for="submit-author">Author: (optional)</label>
+                    <br />
+                    <input type="text" id="submit-author" name="submit-author" placeholder="My name (optional)" />
                 </li>
             </ul>
-            </form>
-        <button onclick="submitFormButtonPress()">Submit</button>
+        </form>
+        <div class="center-everything">
+            <button onclick="submitFormButtonPress();">Submit</button>
+        </div>
     `;
 }
 
@@ -35,9 +37,7 @@ function cleanUpString(str) {
     if(result === undefined || result === null) {
         return "";
     }
-    console.log(result)
-    result.replace("<", "&lt;").replace(">", "&gt;")
-    console.log(result)
+    // result.replace("<", "&lt;").replace(">", "&gt;")
     return result;
 }
 
@@ -51,8 +51,6 @@ function submitFormButtonPress() {
         "author": cleanUpString(author)
     })
     let encoded = btoa(json)
-    let host = window.location.hostname
-    console.log(json)
     window.location.replace("/submit/" + encoded)
 }
 

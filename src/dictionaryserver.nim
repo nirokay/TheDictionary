@@ -46,15 +46,29 @@ proc serveNewEntryConstruct(request; path: seq[string]) {.async.} =
 
 proc serveDefinitions(request; path: seq[string]) {.async.} =
     ## Serves all or multiple definitions based on their name
+    let query: string = block:
+        try:
+            path[0]
+        except IndexDefect:
+            ""
     return request.respond(
         Http200,
-        $(await htmlDisplayMultipleDefinitions()),
+        $(await htmlDisplayMultipleDefinitions(query)),
         responseHeaders()
     )
 
 proc serveDefinitionById(request; path: seq[string]) {.async.} =
     ## Serves a definition queried by its ID
-    discard
+    var id: int
+    try:
+        id = path[0].parseInt()
+    except ValueError as e:
+        return request.serveErrorPage(path, "ID has to be an integer: " & e.msg, Http400)
+    return request.respond(
+        Http200,
+        $(await htmlDisplaySingleDefinition(id)),
+        responseHeaders()
+    )
 
 
 proc handleRequest(request) {.async.} =
@@ -83,7 +97,7 @@ proc handleRequest(request) {.async.} =
         return request.serveDefinitions(args)
     of "definition":
         if args.len() != 1:
-            return request.serveErrorPage(args, "Invalid query, example: /definition/{id}", Http400)
+            return request.serveErrorPage(args, "Invalid query, example: <b>/definition/{id}</b>", Http400)
         return request.serveDefinitionById(args)
     else:
         return request.serveErrorPage(args, "Not found", Http404)

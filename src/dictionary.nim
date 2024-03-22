@@ -34,7 +34,7 @@ proc validateNewEntryAndCommit*(encoded: string): Future[ValidationResponse] {.a
             request: SubmitRequest = json.to(SubmitRequest) # This wil fail, if garbage json is received
 
         # Adding to database:
-        newDefinition(request.word, request.definition, request.author.get(""))
+        newDefinition(request.word, request.definition, request.author.get(""), encoded)
         return (true, "Submitted new definition for the word '" & request.word & "'!")
     except InvalidData as e:
         return (false, e.msg)
