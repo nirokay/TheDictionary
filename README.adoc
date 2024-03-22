@@ -1,6 +1,65 @@
 = THE Dictionary
+:author: nirokay
 
 == About
 
 **THE Dictionary** is a basic and crappy clone of online, user-run dictionaries
 like https://www.urbandictionary.com/[Urban Dictionary].
+
+== Capabilities
+
+=== New definitions
+
+Well, kinda necessary for a user-run dictionary... you can add your new
+definitions at `/submit/`.
+
+==== Submission without website UI
+
+It is possible to submit new definitions through just the URL.
+Submission URLs follow this convention: `/submit/{base64 encoded json}`.
+
+**Example payload:**
+
+[source,json]
+----
+{
+    "word": "example",
+    "definition": "a lot of text, bla bla bla",
+    "author": "me"
+}
+----
+
+Using a base64 encoder will yield us the following string:
+[source,base64]
+----
+eyJ3b3JkIjoiZXhhbXBsZSIsImRlZmluaXRpb24iOiJhIGxvdCBvZiB0ZXh0LCBibGEgYmxhIGJsYSIsImF1dGhvciI6Im1lIn0=
+----
+
+We can use this to send a POST request:
+[source,bash]
+----
+curl "localhost:80/submit/eyJ3b3JkIjoiZXhhbXBsZSIsImRlZmluaXRpb24iOiJhIGxvdCBvZiB0ZXh0LCBibGEgYmxhIGJsYSIsImF1dGhvciI6Im1lIn0="
+----
+
+=== Querying definitions
+
+All definition queries are available under `/definitions/`, while a single
+definition is available under `/definition/{id}` (for example:
+`definition/24`).
+
+You can also search for definitions of a specific word with
+`/definitions/{word}` (for example: `/definition/word`).
+
+SQLite query parameters are also available at your disposal:
+* `/definitions/a%` queries all entries staring with `a`
+* `/definitions/%the%` queries all entries that have `the` in them
+
+== Security
+
+The security of this webserver is unknown and probably contains bugs.
+Running this server on the open internet is not recommended. Use a local
+network instead! :)
+
+== Licence
+
+This project is distributed under **GPL-3.0**.
