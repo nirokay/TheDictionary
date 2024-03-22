@@ -1,8 +1,7 @@
-const url = "";
 function redirect() {
-
+    window.location.replace("/definitions")
 }
 
 window.onload = function() {
-    setTimeout(3000, redirect);
+    setTimeout(redirect, 3000);
 }

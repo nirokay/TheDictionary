@@ -5,7 +5,7 @@
 ##
 ## This modules name is just here to trigger a good friend of mine :)
 
-import std/[options, strutils]
+import std/[options, strutils, algorithm]
 import db_connector/db_sqlite
 import sql/queries
 
@@ -68,7 +68,14 @@ proc toDefinitions*(rows: seq[Row]): seq[Definition] =
 proc initDatabaseTables*() =
     ## Initialises all tables
     withDatabase db:
-        db.exec(sql sqlInitTables)
+        for statement in sqlInitTables:
+            db.exec(sql statement)
+
+proc isHashKnown*(hash: string): bool =
+    withDatabase db:
+        let rows: seq[Row] = db.getAllRows(sql sqlGetHashesByHash, hash)
+        echo "Hash matches: " & $rows
+        if rows.len() != 0: return true
 
 proc newDefinition*(word, definition: string, author: string = "", hash: string) =
     ## New entry, author field is optional
@@ -98,14 +105,16 @@ proc getDefinitionsBySqlStatement*(statement: SqlQuery, args: varargs[string]): 
         for row in response:
             if row[0] == "": continue
             result.add row.toDefinition()
-
+    result.sort() do (x, y: Definition) -> int:
+        result = cmp(y.timestamp, x.timestamp)
 
 proc getAllDefinitions*(): seq[Definition] =
     result = getDefinitionsBySqlStatement(sql sqlGetAllDefinitions)
 
 proc getDefinitionsByName*(name: string): seq[Definition] =
     ## Gets definitions by their name
-    result = getDefinitionsBySqlStatement(sql sqlGetDefinitionsByName, name)
+    let query: string = "%" & name & "%"
+    result = getDefinitionsBySqlStatement(sql sqlGetDefinitionsByName, query)
 
 proc getDefinitionById*(id: string|int): Option[Definition] =
     ## Gets definition by its ID

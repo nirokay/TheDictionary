@@ -1,5 +1,5 @@
 {.define: ssl.}
-import std/[asyncdispatch, asynchttpserver, strutils, sequtils, base64]
+import std/[asyncdispatch, asynchttpserver, strutils, sequtils, base64, options]
 import sequel, dictionary, website
 
 using
@@ -28,9 +28,16 @@ proc serveIndex(request; path: seq[string]) {.async.} =
 
 proc serveNewEntrySubmitAndValidation(request; path: seq[string]) {.async.} =
     ## Serves an error page for a failed submit
-    let status: ValidationResponse = await path.join("/").validateNewEntryAndCommit()
+    let
+        hash: string =  path.join("/")
+        alreadyExistsInHashesTable: bool = hash.isHashKnown()
+
+    if alreadyExistsInHashesTable:
+        return request.serveErrorPage(path, "Refused to submit your new entry: Duplicate")
+
+    let status: ValidationResponse = await hash.validateNewEntryAndCommit()
     if status.success:
-        return request.respond(Http200, "<h1>Success!</h1><p>" & status.details & "</p>")
+        return request.respond(Http200, $(await htmlSubmitSuccess(status.details)))
     else:
         return request.serveErrorPage(path, "Failed to submit your new entry: " & status.details)
 

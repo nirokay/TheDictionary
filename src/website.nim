@@ -1,7 +1,7 @@
 import std/[asyncdispatch, strutils, options]
 import websitegenerator
 export websitegenerator
-import sequel
+import sequel, dictionary
 
 const
     javascriptLocation*: string = "./src/javascript/"
@@ -213,7 +213,12 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
 
 proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
     result = newPage("TheDictionary - Successful submit", "", @[], false, "definition_submit_success.js")
-    result.addContentBox(@[])
+    result.addContentBox(@[
+        p(
+            "Successfully added new definition for word '" & $b(word.replaceAllSussyCharacters()) & "'!" & $br() &
+            "You will be redirected in " & $b("3 seconds") & "!"
+        ).setClass(classCenterAll)
+    ])
 
 proc htmlDisplaySingleDefinition*(id: int): Future[HtmlDocument] {.async.} =
     result = newPage("TheDictionary - Definition", "", @[toIndex], false)

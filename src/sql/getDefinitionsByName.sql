@@ -1,1 +1,1 @@
-SELECT * FROM definitions WHERE word IS ?;
+SELECT * FROM definitions WHERE word LIKE ?;

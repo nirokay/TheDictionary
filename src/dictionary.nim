@@ -13,15 +13,13 @@ const
         [">", "&gt;"]
     ]
 
-proc replaceAllSussyCharacters(json: string): string =
+proc replaceAllSussyCharacters*(json: string): string =
     result = json
-    echo result
     for operation in replaceCharacters:
         let
             toReplace: string = operation[0]
             replaceWith: string = operation[1]
         result = result.replace(toReplace, replaceWith)
-    echo result
 
 proc validateNewEntryAndCommit*(encoded: string): Future[ValidationResponse] {.async.} =
     ## Validates base64 encoded JSON, if it passes it hits the database with
@@ -35,7 +33,7 @@ proc validateNewEntryAndCommit*(encoded: string): Future[ValidationResponse] {.a
 
         # Adding to database:
         newDefinition(request.word, request.definition, request.author.get(""), encoded)
-        return (true, "Submitted new definition for the word '" & request.word & "'!")
+        return (true, request.word)
     except InvalidData as e:
         return (false, e.msg)
     except JsonParsingError as e:
