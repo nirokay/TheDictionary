@@ -51,6 +51,7 @@ You can also search for definitions of a specific word with
 `/definitions/{word}` (for example: `/definition/word`).
 
 SQLite query parameters are also available at your disposal:
+
 * `/definitions/a%` queries all entries staring with `a`
 * `/definitions/%the%` queries all entries that have `the` in them
 
