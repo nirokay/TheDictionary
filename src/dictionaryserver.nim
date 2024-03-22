@@ -1,6 +1,6 @@
 {.define: ssl.}
 import std/[asyncdispatch, asynchttpserver, strutils, sequtils, base64]
-import sequel, dictionary
+import sequel, dictionary, website
 
 using
     request: Request
@@ -14,21 +14,21 @@ proc responseHeaders(): HttpHeaders =
 
 proc serveErrorPage(request; path: seq[string], description: string, httpCode: HttpCode = Http400) {.async.} =
     ## Generic error page server
-    request.respond(
+    return request.respond(
         httpCode,
-        "<h1>Error</h1><p>" & description & "</p>",
+        $(await httpErrorPage(description)),
         responseHeaders()
     )
 
 
 proc serveIndex(request; path: seq[string]) {.async.} =
     ## Serves the index page
-    return request.respond(Http200, "<h1>Index</h1>", responseHeaders())
+    return request.respond(Http200, $(await htmlIndex()), responseHeaders())
 
 
 proc serveNewEntrySubmitAndValidation(request; path: seq[string]) {.async.} =
     ## Serves an error page for a failed submit
-    let status: ValidationResponse = await path[0].validateNewEntryAndCommit()
+    let status: ValidationResponse = await path.join("/").validateNewEntryAndCommit()
     if status.success:
         return request.respond(Http200, "<h1>Success!</h1><p>" & status.details & "</p>")
     else:
@@ -36,13 +36,21 @@ proc serveNewEntrySubmitAndValidation(request; path: seq[string]) {.async.} =
 
 proc serveNewEntryConstruct(request; path: seq[string]) {.async.} =
     ## Serves a page for a new entry
-    return request.respond(Http200, "<h1>New Entry</h1>", responseHeaders())
+    return request.respond(
+        Http200,
+        $(await htmlSubmitDefinition()),
+        responseHeaders()
+    )
 
 
 
 proc serveDefinitions(request; path: seq[string]) {.async.} =
     ## Serves all or multiple definitions based on their name
-    discard
+    return request.respond(
+        Http200,
+        $(await htmlDisplayMultipleDefinitions()),
+        responseHeaders()
+    )
 
 proc serveDefinitionById(request; path: seq[string]) {.async.} =
     ## Serves a definition queried by its ID
@@ -66,8 +74,9 @@ proc handleRequest(request) {.async.} =
     case path[0].toLower():
     of "submit":
         try:
-            let encodedPost: string = args[0]
-            return request.serveNewEntrySubmitAndValidation(@[encodedPost])
+            if args.len() == 0:
+                raise IndexDefect.newException("Throw error to continue to new entry construction.")
+            return request.serveNewEntrySubmitAndValidation(args)
         except IndexDefect:
             return request.serveNewEntryConstruct(args)
     of "definitions":
