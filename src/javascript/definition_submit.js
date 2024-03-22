@@ -33,7 +33,6 @@ function renderForm() {
 
 function cleanUpString(str) {
     let result = str;
-    console.log(result)
     if(result === undefined || result === null) {
         return "";
     }

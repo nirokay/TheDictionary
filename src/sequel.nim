@@ -16,7 +16,11 @@ type
     InvalidData* = object of DatabaseError
 
 const
-    databaseName*: string = "database.db"
+    databaseSwitch*: string = (
+        when defined(release): "database.db"
+        else: "database-testing.db"
+    ) ## Database switch (changes depending on if `-d:release` was used)
+    databaseName* {.strdefine.} = databaseSwitch ## Database name, can be overridden manually
 
 proc getDatabase(): DbConn =
     ## Opens the database (used only for the `withDatabase` template)
@@ -113,8 +117,7 @@ proc getAllDefinitions*(): seq[Definition] =
 
 proc getDefinitionsByName*(name: string): seq[Definition] =
     ## Gets definitions by their name
-    let query: string = "%" & name & "%"
-    result = getDefinitionsBySqlStatement(sql sqlGetDefinitionsByName, query)
+    result = getDefinitionsBySqlStatement(sql sqlGetDefinitionsByName, name)
 
 proc getDefinitionById*(id: string|int): Option[Definition] =
     ## Gets definition by its ID

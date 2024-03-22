@@ -40,6 +40,41 @@ const
         maxWidth("750px")
     ]
 
+    classRedirectButton = "button-redirect" |> @[
+        colour(White),
+        backgroundColour(rgb(50, 30, 58)),
+        textAlign("center"),
+        ["text-decoration", "none"],
+        ["transition", "0.3s"],
+        ["margin", "4px 2px"],
+        padding("5px 10px"),
+        ["border-radius", "6px"]
+    ]
+    classRedirectButtonHover = "button-redirect:hover" |> @[
+        backgroundColour(rgb(60, 40, 68)),
+        ["transition", "0.1s"]
+    ]
+#[
+    buttonClass* = newCssClass("button",
+        backgroundColour(rgb(50, 30, 58)), # backgroundColour(rgb(60, 60, 60)),
+        colour(White),
+        ["border", "none"],
+        padding("10px 20px"),
+        textCenter,
+        ["text-decoration", "none"],
+        display(inlineBlock),
+        fontSize(20.px),
+        ["margin", "4px 2px"],
+        ["cursor", "pointer"],
+        ["transition", "0.3s"],
+        ["border-radius", 6.px]
+    )
+
+    buttonClassHover* = newCssClass("button:hover",
+        backgroundColour(colButtonHover),
+        ["transition", "0.1s"]
+    )
+]#
     classDefinition = "definition" |> @[
         border("thick solid " & $White),
         ["margin", "10px"],
@@ -109,6 +144,9 @@ const
 
             classContentDiv,
 
+            classRedirectButton,
+            classRedirectButtonHover,
+
             classDefinition,
             classDefinitionWord,
             classDefinitionDescription,
@@ -177,7 +215,7 @@ proc newPage*(name, description: string, buttons: seq[Buttons], generateContentB
             "/submit" -> "Submit"
 
         buttonList.add(
-            a(dest, text)
+            a(dest, text).setClass(classRedirectButton)
         )
     if buttonList.len() != 0:
         result.addToBody(`div`(
@@ -201,12 +239,18 @@ proc getHtmlDefinition*(definition: Definition): HtmlElement =
     result = `div`(
         h2(word).setClass(classDefinitionWord),
         p(definition).setClass(classDefinitionDescription),
-        small("by <b>" & author & "</b> @ " & timestamp).setClass(classDefinitionAuthor)
+        small("by <b>" & author & "</b> @ " & timestamp & " UTC").setClass(classDefinitionAuthor)
     ).setClass(classDefinition)
 
 
 proc htmlIndex*(): Future[HtmlDocument] {.async.} =
     result = newPage("TheDictionary", "TheDictionary is a basic Urban Dictionary clone.", @[toDefinitions, toSubmitDefinitions], false)
+    let all: seq[Definition] = getAllDefinitions()
+    if all.len() != 0:
+        result.addContentBox(@[
+            h2("Latest addition"),
+            all[0].getHtmlDefinition()
+        ])
 
 proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
     result = newPage("TheDictionary - Submit", "", @[toIndex, toDefinitions], true, "definition_submit.js")
