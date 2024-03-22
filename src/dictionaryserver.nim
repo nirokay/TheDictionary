@@ -1,5 +1,5 @@
 {.define: ssl.}
-import std/[asyncdispatch, asynchttpserver, strutils, sequtils, base64, options]
+import std/[asyncdispatch, asynchttpserver, strutils, sequtils]
 import sequel, dictionary, website
 
 using
