@@ -10,7 +10,9 @@ const port {.intdefine.}: uint16 = 6969
 
 proc responseHeaders(): HttpHeaders =
     ## Default http headers
-    result = newHttpHeaders()
+    result = newHttpHeaders(@[
+        ("Content-Type", "text/html; charset=utf-8")
+    ])
 
 proc serveErrorPage(request; path: seq[string], description: string, httpCode: HttpCode = Http400) {.async.} =
     ## Generic error page server
@@ -23,13 +25,17 @@ proc serveErrorPage(request; path: seq[string], description: string, httpCode: H
 
 proc serveIndex(request; path: seq[string]) {.async.} =
     ## Serves the index page
-    return request.respond(Http200, $(await htmlIndex()), responseHeaders())
+    return request.respond(
+        Http200,
+        $(await htmlIndex()),
+        responseHeaders()
+    )
 
 
 proc serveNewEntrySubmitAndValidation(request; path: seq[string]) {.async.} =
     ## Serves an error page for a failed submit
     let
-        hash: string =  path.join("/")
+        hash: string = path.join("/")
         alreadyExistsInHashesTable: bool = hash.isHashKnown()
 
     if alreadyExistsInHashesTable:
@@ -37,7 +43,11 @@ proc serveNewEntrySubmitAndValidation(request; path: seq[string]) {.async.} =
 
     let status: ValidationResponse = await hash.validateNewEntryAndCommit()
     if status.success:
-        return request.respond(Http200, $(await htmlSubmitSuccess(status.details)))
+        return request.respond(
+            Http200,
+            $(await htmlSubmitSuccess(status.details)),
+            responseHeaders()
+        )
     else:
         return request.serveErrorPage(path, "Failed to submit your new entry: " & status.details)
 
@@ -95,14 +105,18 @@ proc handleRequest(request) {.async.} =
     case path[0].toLower():
     of "submit":
         try:
+            # Legacy submission:
             if args.len() == 0:
                 raise IndexDefect.newException("Throw error to continue to new entry construction.")
             return request.serveNewEntrySubmitAndValidation(args)
         except IndexDefect:
+            # Serve constructor for new submission:
             return request.serveNewEntryConstruct(args)
     of "definitions":
+        # Display all or specific submissions:
         return request.serveDefinitions(args)
     of "definition":
+        # Display single submission:
         if args.len() != 1:
             return request.serveErrorPage(args, "Invalid query, example: <b>/definition/{id}</b>", Http400)
         return request.serveDefinitionById(args)
