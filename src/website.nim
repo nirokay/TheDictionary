@@ -54,27 +54,6 @@ const
         backgroundColour(rgb(60, 40, 68)),
         ["transition", "0.1s"]
     ]
-#[
-    buttonClass* = newCssClass("button",
-        backgroundColour(rgb(50, 30, 58)), # backgroundColour(rgb(60, 60, 60)),
-        colour(White),
-        ["border", "none"],
-        padding("10px 20px"),
-        textCenter,
-        ["text-decoration", "none"],
-        display(inlineBlock),
-        fontSize(20.px),
-        ["margin", "4px 2px"],
-        ["cursor", "pointer"],
-        ["transition", "0.3s"],
-        ["border-radius", 6.px]
-    )
-
-    buttonClassHover* = newCssClass("button:hover",
-        backgroundColour(colButtonHover),
-        ["transition", "0.1s"]
-    )
-]#
     classDefinition = "definition" |> @[
         border("thick solid " & $White),
         ["margin", "10px"],
@@ -232,12 +211,15 @@ proc newPage*(name, description: string, buttons: seq[Buttons], generateContentB
 
 proc getHtmlDefinition*(definition: Definition): HtmlElement =
     let
+        id = definition.id
         word = definition.word
         author = definition.author
         timestamp = definition.timestamp
         definition = definition.definition.replace("\n", "<br />")
     result = `div`(
-        h2(word).setClass(classDefinitionWord),
+        h2(
+            $a("/definition/" & $id, word) # Direct to the post itself
+        ).setClass(classDefinitionWord),
         p(definition).setClass(classDefinitionDescription),
         small("by <b>" & author & "</b> @ " & timestamp & " UTC").setClass(classDefinitionAuthor)
     ).setClass(classDefinition)
@@ -302,4 +284,3 @@ proc httpErrorPage*(details: string): Future[HtmlDocument] {.async.} =
     result.add(
         p(details).setClass(classCenterAll)
     )
-
