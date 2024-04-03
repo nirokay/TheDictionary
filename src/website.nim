@@ -19,11 +19,21 @@ const
 
     widthMax = maxWidth("750px")
 
-    backgroundContent = backgroundColour(rgb(40, 40, 60))
-    backgroundHtml = backgroundColour(rgb(23, 25, 33))
-    backgroundButton = backgroundColour(rgb(50, 30, 58))
-    backgroundButtonHover = backgroundColour(rgb(60, 40, 68))
-    backgroundInputFields = backgroundColour(rgb(50, 50, 70))
+    backgroundHtml = backgroundColour(
+        rgb(30, 30, 40) # rgb(23, 25, 33)
+    )
+    backgroundContent = backgroundColour(
+        rgb(40, 40, 60)
+    )
+    backgroundInputFields = backgroundColour(
+        rgb(50, 50, 70)
+    )
+    backgroundButton = backgroundColour(
+        rgb(50, 30, 58)
+    )
+    backgroundButtonHover = backgroundColour(
+        rgb(60, 40, 68)
+    )
 
     textCenter = ["text-align", "center"]
     textUnderline = ["text-decoration", "underline"]
@@ -57,6 +67,7 @@ const
     classContentDiv = "content-display" |> @[
         centeredMargin,
         unifiedBorder,
+        roundedCorners,
         backgroundContent,
         unifiedPadding,
         widthMax
@@ -93,8 +104,9 @@ const
         ["transition", "0.1s"]
     ]
     classDefinition = "definition" |> @[
-        border("thick solid " & $White),
+        # border("thick solid " & $White),
         ["margin", "10px"],
+        backgroundInputFields,
         unifiedPadding,
         roundedCorners
     ]
@@ -115,6 +127,7 @@ const
         ["white-space", "pre-wrap"]
     ]
 
+
 const
     # Css stylesheet:
     css: CssStyleSheet = block:
@@ -132,13 +145,15 @@ const
             "input" -> @[
                 colour(White),
                 backgroundInputFields,
-                width(inputFieldsWidth)
+                width(inputFieldsWidth),
+                roundedCorners
             ],
             "textarea" -> @[
                 colour(White),
                 backgroundInputFields,
                 width(inputFieldsWidth),
-                ["resize", "vertical"]
+                ["resize", "vertical"],
+                roundedCorners
             ],
             "form" -> @[
                 colour(White),
@@ -146,7 +161,8 @@ const
                 width("90%"),
                 widthMax,
                 ["margin", "auto 10px"],
-                unifiedPadding
+                unifiedPadding,
+                roundedCorners
             ],
             "button" -> @[
                 textCenter,

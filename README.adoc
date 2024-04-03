@@ -13,34 +13,6 @@ like https://www.urbandictionary.com/[Urban Dictionary].
 Well, kinda necessary for a user-run dictionary... you can add your new
 definitions at `/submit/`.
 
-==== Submission without website UI
-
-It is possible to submit new definitions through just the URL.
-Submission URLs follow this convention: `/submit/{base64 encoded json}`.
-
-**Example payload:**
-
-[source,json]
-----
-{
-    "word": "example",
-    "definition": "a lot of text, bla bla bla",
-    "author": "me"
-}
-----
-
-Using a base64 encoder will yield us the following string:
-[source,base64]
-----
-eyJ3b3JkIjoiZXhhbXBsZSIsImRlZmluaXRpb24iOiJhIGxvdCBvZiB0ZXh0LCBibGEgYmxhIGJsYSIsImF1dGhvciI6Im1lIn0=
-----
-
-We can use this to send a POST request:
-[source,bash]
-----
-curl "localhost:80/submit/eyJ3b3JkIjoiZXhhbXBsZSIsImRlZmluaXRpb24iOiJhIGxvdCBvZiB0ZXh0LCBibGEgYmxhIGJsYSIsImF1dGhvciI6Im1lIn0="
-----
-
 === Querying definitions
 
 All definition queries are available under `/definitions/`, while a single
@@ -54,14 +26,6 @@ SQLite query parameters are also available at your disposal:
 
 * `/definitions/a%` queries all entries staring with `a`
 * `/definitions/%the%` queries all entries that have `the` in them
-
-== Limitations
-
-For any character, that is not supported by base64 encoding, included in a
-submission, the submission will fail.
-
-Is this fixable? Yes, but this would require refactoring lots of code. Maybe
-I will do this in the future. -v-
 
 == Security
 

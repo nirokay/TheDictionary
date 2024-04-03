@@ -1,5 +1,5 @@
 {.define: ssl.}
-import std/[asyncdispatch, asynchttpserver, strutils, sequtils, tables]
+import std/[asyncdispatch, asynchttpserver, strutils, sequtils]
 import sequel, dictionary, website, parser
 
 using
@@ -41,24 +41,23 @@ proc serveNewEntryConstruct(request; path: seq[string]) {.async.} =
 
 proc handleNewDefinition(request; path: seq[string]) {.async.} =
     ## New way to submit a submission
-    echo request.body
     let
         body: string = request.body
         parsed: ParsedSubmitField = body.parseHtmlBodySubmit()
         status: ValidationResponse = await validateNewEntryAndCommit(parsed.word, parsed.definition, parsed.author)
-    echo parsed
-    echo status
-    if status.success:
+
+    case status.success:
+    of true:
         return request.respond(
             Http200,
             $(await htmlSubmitSuccess(status.details)),
             responseHeaders()
         )
-    else:
+    of false:
         return request.serveErrorPage(path, "Failed to submit your new entry: " & status.details)
 
 proc serveDefinitions(request; path: seq[string]) {.async.} =
-    ## Serves all or multiple definitions based on their name
+    ## Queries all definitions or by patterns
     let query: string = block:
         try:
             path[0]
@@ -106,14 +105,17 @@ proc handleRequest(request) {.async.} =
         # New, improved way to handle submission:
         return request.handleNewDefinition(args)
     of "definitions":
-        # Display all or specific submissions:
+        # Display all or queried submission(s):
         return request.serveDefinitions(args)
     of "definition":
         # Display single submission:
+        # - Query:
         if args.len() != 1:
             return request.serveErrorPage(args, "Invalid query, example: <b>/definition/{id}</b>", Http400)
+        # - Display by ID:
         return request.serveDefinitionById(args)
     else:
+        # Display 404:
         return request.serveErrorPage(args, "Not found", Http404)
 
 
@@ -126,4 +128,5 @@ proc runServer() {.async.} =
 proc main() =
     initDatabaseTables()
     waitFor runServer()
-main()
+when isMainModule:
+    main()

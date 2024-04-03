@@ -1,11 +1,11 @@
-import std/[strutils, tables, encodings, uri]
+import std/[strutils, tables, uri]
 
 const
     keyValueSeparator: char = '&'
     keyValueAssign: char = '='
 
 type
-    ParsedSubmitField* = tuple[word, definition, author: string]
+    ParsedSubmitField* = tuple[word, definition, author: string] ## Valid fields for submissions
 
 proc parseHtmlBody*(body: string): Table[string, string] =
     ## Parses html body and turns it into a Table of key -> value pairs
@@ -16,9 +16,9 @@ proc parseHtmlBody*(body: string): Table[string, string] =
             key = split[0]
             value = split[1]
         result[key] = value
-    echo result
 
 proc parseHtmlBodySubmit*(body: string): ParsedSubmitField =
+    ## Parses html body for the submit page
     let parsed: Table[string, string] = body.parseHtmlBody()
     result = (
         word: parsed.getOrDefault("word", ""),

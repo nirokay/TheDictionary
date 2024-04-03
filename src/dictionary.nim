@@ -1,4 +1,4 @@
-import std/[asyncdispatch, json, options, strutils]
+import std/[asyncdispatch, options, strutils]
 import sequel
 import checksums/sha3
 
@@ -35,4 +35,10 @@ proc validateNewEntryAndCommit*(word, definition, author: string): Future[Valida
         definition = definition.strip()
         author = author.strip()
         hash: string = constructHash(word, definition)
-    newDefinition(word, definition, author, hash)
+    try:
+        newDefinition(word, definition, author, hash)
+    except DuplicateHash:
+        return (false, "Duplicate entry")
+    except InvalidData:
+        return (false, "Invalid data: Missing non-optional fields")
+    return (true, word)

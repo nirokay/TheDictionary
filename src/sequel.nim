@@ -95,14 +95,9 @@ proc newDefinition*(word, description: string, author: string = "", hash: string
         # Duplicate hash, search more in-depth for matching submission data:
         if unlikely rows.len() != 0:
             for row in rows:
-                try:
-                    let definition: Definition = row.toDefinition()
-                    if definition.word == word and definition.definition == description:
-                        raise DuplicateHash.newException("Got duplicate entry. Refusing submission.")
-                except DuplicateHash as e:
-                    raise e
-                except CatchableError, Defect:
-                    continue
+                let definition: Definition = row.toDefinition()
+                if definition.word == word and definition.definition == description:
+                    raise DuplicateHash.newException("Got duplicate entry. Refusing submission.")
 
         # Submit:
         if author != "":
