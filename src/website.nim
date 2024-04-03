@@ -148,7 +148,7 @@ proc addContentBox(html: var HtmlDocument, elements: seq[HtmlElement] = @[p(" ")
 
 proc li(elements: seq[HtmlElement]): HtmlElement = li($elements)
 
-proc newPage*(name, description: string, buttons: seq[Buttons], generateContentBox: bool = true, scriptPath: string = ""): HtmlDocument =
+proc newPage*(name, description: string, generateContentBox: bool = true, scriptPath: string = ""): HtmlDocument =
     ## Generalised HTML page generator
     result = newDocument(name & ".html")
 
@@ -178,7 +178,8 @@ proc newPage*(name, description: string, buttons: seq[Buttons], generateContentB
     )
 
     # Buttons:
-    var buttonList: seq[HtmlElement]
+    let buttons = @[toIndex, toDefinitions, toSubmitDefinitions]
+    var buttonList: seq[HtmlElement] = @[]
     for button in buttons:
         var
             dest: string
@@ -217,7 +218,7 @@ proc getHtmlDefinition*(definition: Definition): HtmlElement =
         word = definition.word.decode()
         author = definition.author.decode()
         definition = definition.definition.decode()
-    echo definition
+
     result = `div`(
         h2(
             $a("/definition/" & $id, word) # Direct to the post itself
@@ -228,7 +229,7 @@ proc getHtmlDefinition*(definition: Definition): HtmlElement =
 
 
 proc htmlIndex*(): Future[HtmlDocument] {.async.} =
-    result = newPage("TheDictionary", "TheDictionary is a basic Urban Dictionary clone.", @[toDefinitions, toSubmitDefinitions], false)
+    result = newPage("TheDictionary", "TheDictionary is a basic Urban Dictionary clone.", false)
     let all: seq[Definition] = getAllDefinitions()
     if all.len() != 0:
         result.addContentBox(@[
@@ -237,7 +238,7 @@ proc htmlIndex*(): Future[HtmlDocument] {.async.} =
         ])
 
 proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
-    result = newPage("TheDictionary - Submit", "", @[toIndex, toDefinitions], false, "definition_submit.js")
+    result = newPage("TheDictionary - Submit", "", false, "definition_submit.js")
     let
         idWord: string = "submit-word"
         idDefinition: string = "submit-definition"
@@ -273,7 +274,7 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
     ).setClass(classCenter)])
 
 proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
-    result = newPage("TheDictionary - Successful submit", "", @[], false, "definition_submit_success.js")
+    result = newPage("TheDictionary - Successful submit", "", false, "definition_submit_success.js")
     result.addContentBox(@[
         p(
             "Successfully added new definition for word '" & $b(word.replaceAllSussyCharacters()) & "'!" & $br() &
@@ -282,7 +283,7 @@ proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
     ])
 
 proc htmlDisplaySingleDefinition*(id: int): Future[HtmlDocument] {.async.} =
-    result = newPage("TheDictionary - Definition", "", @[toIndex], false)
+    result = newPage("TheDictionary - Definition", "", false)
     let definition: Option[Definition] = getDefinitionById(id)
     if definition.isSome():
         result.addContentBox(@[
@@ -295,7 +296,7 @@ proc htmlDisplaySingleDefinition*(id: int): Future[HtmlDocument] {.async.} =
 
 
 proc htmlDisplayMultipleDefinitions*(query: string = ""): Future[HtmlDocument] {.async.} =
-    result = newPage("TheDictionary - Definitions", "", @[toIndex], false)
+    result = newPage("TheDictionary - Definitions", "", false)
     let definitions: seq[Definition] = (
         if query != "": getDefinitionsByName(query)
         else: getAllDefinitions()
@@ -315,7 +316,7 @@ proc htmlDisplayMultipleDefinitions*(query: string = ""): Future[HtmlDocument] {
         ])
 
 proc httpErrorPage*(details: string): Future[HtmlDocument] {.async.} =
-    result = newPage("TheDictionary - Error", "", @[toIndex], false)
+    result = newPage("TheDictionary - Error", "", false)
     result.add(
         p(details).setClass(classCenterAll)
     )
