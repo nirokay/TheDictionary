@@ -35,6 +35,8 @@ const
         rgb(60, 40, 68)
     )
 
+    textColour = colour(rgb(245, 245, 245))
+
     textCenter = ["text-align", "center"]
     textUnderline = ["text-decoration", "underline"]
     textNoDecoration = ["text-decoration", "none"]
@@ -90,7 +92,7 @@ const
     ]
 
     classRedirectButton = "button-redirect" |> @[
-        colour(White),
+        textColour,
         backgroundButton,
         textAlign("center"),
         textNoDecoration,
@@ -134,7 +136,7 @@ const
         var result = newCssStyleSheet("styles.css")
         result.add(
             "html" -> @[
-                colour(White),
+                textColour,
                 backgroundHtml,
                 fontFamily("Verdana, Geneva, Tahoma, sans-serif")
             ],
@@ -143,20 +145,20 @@ const
                 textCenter
             ],
             "input" -> @[
-                colour(White),
+                textColour,
                 backgroundInputFields,
                 width(inputFieldsWidth),
                 roundedCorners
             ],
             "textarea" -> @[
-                colour(White),
+                textColour,
                 backgroundInputFields,
                 width(inputFieldsWidth),
                 ["resize", "vertical"],
                 roundedCorners
             ],
             "form" -> @[
-                colour(White),
+                textColour,
                 border("solid 1px"),
                 width("90%"),
                 widthMax,
