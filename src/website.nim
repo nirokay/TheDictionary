@@ -1,7 +1,7 @@
 import std/[asyncdispatch, strutils, options]
 import websitegenerator
 export websitegenerator
-import sequel, dictionary
+import sequel, dictionary, parser
 
 const
     javascriptLocation*: string = "./src/javascript/"
@@ -146,6 +146,8 @@ proc addContentBox(html: var HtmlDocument, elements: seq[HtmlElement] = @[p(" ")
         )
     )
 
+proc li(elements: seq[HtmlElement]): HtmlElement = li($elements)
+
 proc newPage*(name, description: string, buttons: seq[Buttons], generateContentBox: bool = true, scriptPath: string = ""): HtmlDocument =
     ## Generalised HTML page generator
     result = newDocument(name & ".html")
@@ -208,14 +210,14 @@ proc newPage*(name, description: string, buttons: seq[Buttons], generateContentB
     )
     if generateContentBox: result.addContentBox()
 
-
 proc getHtmlDefinition*(definition: Definition): HtmlElement =
     let
         id = definition.id
-        word = definition.word
-        author = definition.author
         timestamp = definition.timestamp
-        definition = definition.definition.replace("\n", "<br />")
+        word = definition.word.decode()
+        author = definition.author.decode()
+        definition = definition.definition.decode()
+    echo definition
     result = `div`(
         h2(
             $a("/definition/" & $id, word) # Direct to the post itself
@@ -235,7 +237,40 @@ proc htmlIndex*(): Future[HtmlDocument] {.async.} =
         ])
 
 proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
-    result = newPage("TheDictionary - Submit", "", @[toIndex, toDefinitions], true, "definition_submit.js")
+    result = newPage("TheDictionary - Submit", "", @[toIndex, toDefinitions], false, "definition_submit.js")
+    let
+        idWord: string = "submit-word"
+        idDefinition: string = "submit-definition"
+        idAuthor: string = "submit-author"
+
+        replaceMe: string = "#REPLACE_ME#" # 10.000 IQ move
+    proc newField(id, text, name, placeholder: string, isTextarea: bool = false): HtmlElement =
+        result = li(@[
+            label(id, text),
+            br(),
+            (
+                if isTextArea: newElement("textarea", replaceMe).add( # 100.000 IQ move
+                    attr("placeholder", placeholder),
+                    attr("rows", "3"),
+                    attr("id", id),
+                    attr("name", name)
+                )
+                else: input("text", id, name).add(attr("placeholder", placeholder))
+            )
+        ])
+    result.addContentBox(@[form(@[
+        ul(@[
+            newField(idWord, "Word:", "word", "My interesting word", false),
+            text replace($newField(idDefinition, "Definition:", "definition", "My interesting definition", true), replaceMe, ""), # 1.000.000 IQ move
+            newField(idAuthor, "Author:", "author", "My name (optional)", false),
+            `div`(newElement("button", "Submit").add(
+                attr("type", "submit")
+            )).setClass(classCenterAll)
+        ]),
+    ], "/handle-submit").add(
+        attr("method", "post"),
+        attr("accept-charset", "utf-8")
+    ).setClass(classCenter)])
 
 proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
     result = newPage("TheDictionary - Successful submit", "", @[], false, "definition_submit_success.js")

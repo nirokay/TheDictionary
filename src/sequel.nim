@@ -10,10 +10,11 @@ import db_connector/db_sqlite
 import sql/queries
 
 type
-    Definition* = tuple[id: int, word, definition, author: string, upvotes, downvotes: int, timestamp: string]
+    Definition* = tuple[id: int, word, definition, author: string, upvotes, downvotes: int, timestamp, sha3hash: string]
 
     DatabaseError* = object of ValueError
     InvalidData* = object of DatabaseError
+    DuplicateHash* = object of DatabaseError
 
 const
     databaseSwitch*: string = (
@@ -62,7 +63,8 @@ proc toDefinition*(row: Row): Definition =
         author: row[3],
         upvotes: row[4].parseInt(),
         downvotes: row[5].parseInt(),
-        timestamp: row[6]
+        timestamp: row[6],
+        sha3hash: row[7]
     )
 proc toDefinitions*(rows: seq[Row]): seq[Definition] =
     for row in rows:
@@ -72,32 +74,44 @@ proc toDefinitions*(rows: seq[Row]): seq[Definition] =
 proc initDatabaseTables*() =
     ## Initialises all tables
     withDatabase db:
+        db.exec(sql "PRAGMA encoding = \"UTF-8\"")
         for statement in sqlInitTables:
             db.exec(sql statement)
 
-proc isHashKnown*(hash: string): bool =
-    withDatabase db:
-        let rows: seq[Row] = db.getAllRows(sql sqlGetHashesByHash, hash)
-        echo "Hash matches: " & $rows
-        if rows.len() != 0: return true
-
-proc newDefinition*(word, definition: string, author: string = "", hash: string) =
+proc newDefinition*(word, description: string, author: string = "", hash: string) =
     ## New entry, author field is optional
     let
         word = word.strip()
-        definition = definition.strip()
+        description = description.strip()
         author = author.strip()
 
-    if "" in [word, definition]:
+    if "" in [word, description]:
         raise InvalidData.newException("Got an empty string while submitting new definition. Fields <b>Word</b> and <b>Definition</b> must not be empty!")
 
+    # Check for duplicate hashes:
     withDatabase db:
-        if author != "":
-            db.exec(sql sqlNewEntry, word, definition, author)
-        else:
-            db.exec(sql sqlNewEntryAnonymous, word, definition)
-        db.exec(sql sqlNewEntryHash, hash)
+        let rows: seq[Row] = db.getAllRows(sql sqlGetEntriesByHash, hash)
 
+        # Duplicate hash, search more in-depth for matching submission data:
+        if unlikely rows.len() != 0:
+            for row in rows:
+                try:
+                    let definition: Definition = row.toDefinition()
+                    if definition.word == word and definition.definition == description:
+                        raise DuplicateHash.newException("Got duplicate entry. Refusing submission.")
+                except DuplicateHash as e:
+                    raise e
+                except CatchableError, Defect:
+                    continue
+
+        # Submit:
+        if author != "":
+            db.exec(sql sqlNewEntry, word, description, author, hash)
+        else:
+            db.exec(sql sqlNewEntryAnonymous, word, description, hash)
+
+proc newDefinition*(definition: Definition, hash: string) =
+    newDefinition(definition.word, definition.definition, definition.author, hash)
 
 proc getDefinitionsBySqlStatement*(statement: SqlQuery, args: varargs[string]): seq[Definition] =
     ## Gets definitions based on statement and parameters

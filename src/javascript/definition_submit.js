@@ -11,23 +11,23 @@ function renderForm() {
                 <li>
                     <label for="submit-word">Word:</label>
                     <br />
-                    <input type="text" id="submit-word" name="submit-word" placeholder="My interesting word" />
+                    <input type="text" id="submit-word" name="word" placeholder="My interesting word" />
                 </li>
                 <li>
                     <label for="submit-definition">Definition:</label>
                     <br />
-                    <textarea id="submit-definition" name="submit-definition" rows="10" placeholder="My interesting definition" ></textarea>
+                    <textarea id="submit-definition" name="definition" rows="10" placeholder="My interesting definition" ></textarea>
                 </li>
                 <li>
                     <label for="submit-author">Author: (optional)</label>
                     <br />
-                    <input type="text" id="submit-author" name="submit-author" placeholder="My name (optional)" />
+                    <input type="text" id="submit-author" name="author" placeholder="My name (optional)" />
                 </li>
             </ul>
+            <div class="center-everything">
+                <button type="submit">Submit</button>
+            </div>
         </form>
-        <div class="center-everything">
-            <button onclick="submitFormButtonPress();">Submit</button>
-        </div>
     `;
 }
 
@@ -58,5 +58,5 @@ function submitFormButtonPress() {
 }
 
 window.onload = function() {
-    renderForm();
+    // renderForm();
 }

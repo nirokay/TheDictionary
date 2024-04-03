@@ -8,11 +8,9 @@ proc importSqlQuery(filename: static[string]): static[string] =
 
 const
     sqlInitTableDefinitions*: string = importSqlQuery "initTableDefinitions"
-    sqlInitTableHashes*: string = importSqlQuery "initTableHashes"
 
-    sqlInitTables*: array[2, string] = [
-        sqlInitTableDefinitions,
-        sqlInitTableHashes
+    sqlInitTables*: array[1, string] = [
+        sqlInitTableDefinitions
     ]
 
     sqlNewEntryHash*: string = importSqlQuery "newHash"
@@ -23,4 +21,4 @@ const
     sqlGetDefinitionsByName*: string = importSqlQuery "getDefinitionsByName"
     sqlGetAllDefinitions*: string = importSqlQuery "getAllDefinitions"
 
-    sqlGetHashesByHash*: string = importSqlQuery "getHashesByHash"
+    sqlGetEntriesByHash*: string = importSqlQuery "getEntriesByHash"

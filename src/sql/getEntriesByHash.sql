@@ -1,2 +1,2 @@
 -- This file name is stupid, but descriptive... I guess...
-SELECT * FROM definitions WHERE hash IS ?;
+SELECT * FROM definitions WHERE sha3hash IS ?;

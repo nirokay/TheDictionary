@@ -1,6 +1,6 @@
 {.define: ssl.}
-import std/[asyncdispatch, asynchttpserver, strutils, sequtils]
-import sequel, dictionary, website
+import std/[asyncdispatch, asynchttpserver, strutils, sequtils, tables]
+import sequel, dictionary, website, parser
 
 using
     request: Request
@@ -31,26 +31,6 @@ proc serveIndex(request; path: seq[string]) {.async.} =
         responseHeaders()
     )
 
-
-proc serveNewEntrySubmitAndValidation(request; path: seq[string]) {.async.} =
-    ## Serves an error page for a failed submit
-    let
-        hash: string = path.join("/")
-        alreadyExistsInHashesTable: bool = hash.isHashKnown()
-
-    if alreadyExistsInHashesTable:
-        return request.serveErrorPage(path, "Refused to submit your new entry: Duplicate")
-
-    let status: ValidationResponse = await hash.validateNewEntryAndCommit()
-    if status.success:
-        return request.respond(
-            Http200,
-            $(await htmlSubmitSuccess(status.details)),
-            responseHeaders()
-        )
-    else:
-        return request.serveErrorPage(path, "Failed to submit your new entry: " & status.details)
-
 proc serveNewEntryConstruct(request; path: seq[string]) {.async.} =
     ## Serves a page for a new entry
     return request.respond(
@@ -59,7 +39,23 @@ proc serveNewEntryConstruct(request; path: seq[string]) {.async.} =
         responseHeaders()
     )
 
-
+proc handleNewDefinition(request; path: seq[string]) {.async.} =
+    ## New way to submit a submission
+    echo request.body
+    let
+        body: string = request.body
+        parsed: ParsedSubmitField = body.parseHtmlBodySubmit()
+        status: ValidationResponse = await validateNewEntryAndCommit(parsed.word, parsed.definition, parsed.author)
+    echo parsed
+    echo status
+    if status.success:
+        return request.respond(
+            Http200,
+            $(await htmlSubmitSuccess(status.details)),
+            responseHeaders()
+        )
+    else:
+        return request.serveErrorPage(path, "Failed to submit your new entry: " & status.details)
 
 proc serveDefinitions(request; path: seq[string]) {.async.} =
     ## Serves all or multiple definitions based on their name
@@ -104,14 +100,11 @@ proc handleRequest(request) {.async.} =
     let args: seq[string] = path[1 .. ^1]
     case path[0].toLower():
     of "submit":
-        try:
-            # Legacy submission:
-            if args.len() == 0:
-                raise IndexDefect.newException("Throw error to continue to new entry construction.")
-            return request.serveNewEntrySubmitAndValidation(args)
-        except IndexDefect:
-            # Serve constructor for new submission:
-            return request.serveNewEntryConstruct(args)
+        # Serve constructor for new submission:
+        return request.serveNewEntryConstruct(args)
+    of "handle-submit":
+        # New, improved way to handle submission:
+        return request.handleNewDefinition(args)
     of "definitions":
         # Display all or specific submissions:
         return request.serveDefinitions(args)

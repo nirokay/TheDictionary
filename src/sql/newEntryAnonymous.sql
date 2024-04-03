@@ -1,1 +1,1 @@
-INSERT INTO definitions (word, description) VALUES (?, ?);
+INSERT INTO definitions (word, description, sha3hash) VALUES (?, ?, ?);
