@@ -9,58 +9,97 @@ const
 
     inputFieldsWidth = "92%"
 
-proc `->`(elem: string, properties: varargs[array[0..1, string]]): CssElement =
+
+const
+    # Css values:
+    roundedCorners = ["border-radius", "6px"]
+    unifiedBorder = border("10px")
+    unifiedPadding = padding("10px")
+    centeredMargin = ["margin", "auto"]
+
+    widthMax = maxWidth("750px")
+
+    backgroundContent = backgroundColour(rgb(40, 40, 60))
+    backgroundHtml = backgroundColour(rgb(23, 25, 33))
+    backgroundButton = backgroundColour(rgb(50, 30, 58))
+    backgroundButtonHover = backgroundColour(rgb(60, 40, 68))
+    backgroundInputFields = backgroundColour(rgb(50, 50, 70))
+
+    textCenter = ["text-align", "center"]
+    textUnderline = ["text-decoration", "underline"]
+    textNoDecoration = ["text-decoration", "none"]
+
+
+proc `->`(elem: string, properties: seq[array[2, string]]): CssElement =
     ## Css element
     newCssElement(elem, properties)
-proc `|>`(class: string, properties: varargs[array[0..1, string]]): CssElement =
+proc `|>`(class: string, properties: seq[array[2, string]]): CssElement =
     ## Css class
     newCssClass(class, properties)
 proc link(which: string, colour: CssColour|string): CssElement =
     ## Css link stuff
     newCssElement("a:" & which,
         ["color", $colour],
-        ["text-decoration", "none"]
+        textNoDecoration
     )
+
 
 const
     # Css classes:
     classCenter = "center" |> @[
-        ["margin", "auto"]
+        centeredMargin
     ]
     classCenterAll = "center-everything" |> @[
-        ["margin", "auto"],
-        ["text-align", "center"]
+        centeredMargin,
+        textCenter
     ]
 
     classContentDiv = "content-display" |> @[
-        ["margin", "auto"],
-        border("10px"),
-        backgroundColour(rgb(40, 40, 60)),
-        padding("10px"),
-        maxWidth("750px")
+        centeredMargin,
+        unifiedBorder,
+        backgroundContent,
+        unifiedPadding,
+        widthMax
+    ]
+
+    classSearchBar = "search-bar" |> @[
+        centeredMargin,
+        unifiedBorder,
+        roundedCorners,
+        backgroundContent,
+        unifiedPadding
+    ]
+
+    classSearchDiv = "search-bar-div" |> @[
+        centeredMargin,
+        unifiedBorder,
+        roundedCorners,
+        padding("2px"),
+        widthMax
     ]
 
     classRedirectButton = "button-redirect" |> @[
         colour(White),
-        backgroundColour(rgb(50, 30, 58)),
+        backgroundButton,
         textAlign("center"),
-        ["text-decoration", "none"],
+        textNoDecoration,
         ["transition", "0.3s"],
         ["margin", "4px 2px"],
         padding("5px 10px"),
-        ["border-radius", "6px"]
+        roundedCorners
     ]
     classRedirectButtonHover = "button-redirect:hover" |> @[
-        backgroundColour(rgb(60, 40, 68)),
+        backgroundButtonHover,
         ["transition", "0.1s"]
     ]
     classDefinition = "definition" |> @[
         border("thick solid " & $White),
         ["margin", "10px"],
-        padding("10px")
+        unifiedPadding,
+        roundedCorners
     ]
     classDefinitionWord = "definition-word" |> @[
-        ["text-decoration", "underline"],
+        textUnderline,
         ["margin-top", "5px"],
         ["margin-bottom", "5px"],
         ["word-wrap", "break-word"],
@@ -76,27 +115,28 @@ const
         ["white-space", "pre-wrap"]
     ]
 
+const
     # Css stylesheet:
     css: CssStyleSheet = block:
         var result = newCssStyleSheet("styles.css")
         result.add(
             "html" -> @[
                 colour(White),
-                backgroundColour(rgb(23, 25, 33)),
+                backgroundHtml,
                 fontFamily("Verdana, Geneva, Tahoma, sans-serif")
             ],
             "h1, h2, h3, h4, h5, h6" -> @[
-                ["text-decoration", "underline"],
-                ["text-align", "center"]
+                textUnderline,
+                textCenter
             ],
             "input" -> @[
                 colour(White),
-                backgroundColour(rgb(50, 50, 70)),
+                backgroundInputFields,
                 width(inputFieldsWidth)
             ],
             "textarea" -> @[
                 colour(White),
-                backgroundColour(rgb(50, 50, 70)),
+                backgroundInputFields,
                 width(inputFieldsWidth),
                 ["resize", "vertical"]
             ],
@@ -104,12 +144,12 @@ const
                 colour(White),
                 border("solid 1px"),
                 width("90%"),
-                maxWidth("750px"),
+                widthMax,
                 ["margin", "auto 10px"],
-                padding("10px")
+                unifiedPadding
             ],
             "button" -> @[
-                ["text-align", "center"],
+                textCenter,
                 ["margin-top", "10px"]
             ],
 
@@ -122,6 +162,8 @@ const
             classCenterAll,
 
             classContentDiv,
+            classSearchBar,
+            classSearchDiv,
 
             classRedirectButton,
             classRedirectButtonHover,
@@ -244,7 +286,7 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
         idDefinition: string = "submit-definition"
         idAuthor: string = "submit-author"
 
-        replaceMe: string = "#REPLACE_ME#" # 10.000 IQ move
+        replaceMe: string = "#[REPLACE_ME]#" # 10.000 IQ move
     proc newField(id, text, name, placeholder: string, isTextarea: bool = false): HtmlElement =
         result = li(@[
             label(id, text),
@@ -252,7 +294,7 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
             (
                 if isTextArea: newElement("textarea", replaceMe).add( # 100.000 IQ move
                     attr("placeholder", placeholder),
-                    attr("rows", "3"),
+                    attr("rows", "10"),
                     attr("id", id),
                     attr("name", name)
                 )
@@ -262,7 +304,9 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
     result.addContentBox(@[form(@[
         ul(@[
             newField(idWord, "Word:", "word", "My interesting word", false),
-            text replace($newField(idDefinition, "Definition:", "definition", "My interesting definition", true), replaceMe, ""), # 1.000.000 IQ move
+            text replace(
+                $newField(idDefinition, "Definition:", "definition", "My interesting definition", true), replaceMe, "" # 1.000.000 IQ move
+            ),
             newField(idAuthor, "Author:", "author", "My name (optional)", false),
             `div`(newElement("button", "Submit").add(
                 attr("type", "submit")
@@ -276,6 +320,9 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
 proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
     result = newPage("TheDictionary - Successful submit", "", false, "definition_submit_success.js")
     result.addContentBox(@[
+        `div`(
+            # input()
+        ).setClass(classSearchBar),
         p(
             "Successfully added new definition for word '" & $b(word.replaceAllSussyCharacters()) & "'!" & $br() &
             "You will be redirected in " & $b("3 seconds") & "!"
