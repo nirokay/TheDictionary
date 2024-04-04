@@ -1,3 +1,8 @@
+## Parser module
+## =============
+##
+## This module implements parsing HTTP body requests for new submissions.
+
 import std/[strutils, tables, uri]
 
 const

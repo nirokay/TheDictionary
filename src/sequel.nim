@@ -12,9 +12,9 @@ import sql/queries
 type
     Definition* = tuple[id: int, word, definition, author: string, upvotes, downvotes: int, timestamp, sha3hash: string]
 
-    DatabaseError* = object of ValueError
-    InvalidData* = object of DatabaseError
-    DuplicateHash* = object of DatabaseError
+    DatabaseError* = object of ValueError ## Generic error with database
+    InvalidData* = object of DatabaseError ## Missing fields (word/definition)
+    DuplicateHash* = object of DatabaseError ## Duplicate entry
 
 const
     databaseSwitch*: string = (
@@ -59,6 +59,7 @@ template withDatabase*(db: untyped, body: untyped) =
 
 
 proc toDefinition*(row: Row): Definition =
+    ## Converts `Row` to `Definition`
     result = (
         id: row[0].parseInt(),
         word: row[1],
@@ -70,6 +71,7 @@ proc toDefinition*(row: Row): Definition =
         sha3hash: row[7]
     )
 proc toDefinitions*(rows: seq[Row]): seq[Definition] =
+    ## Converts a sequence of `Row`s to a sequence of `Definition`s
     for row in rows:
         result.add row.toDefinition()
 
@@ -109,6 +111,7 @@ proc newDefinition*(word, description: string, author: string = "", hash: string
             db.exec(sql sqlNewEntryAnonymous, word, description, hash)
 
 proc newDefinition*(definition: Definition, hash: string) =
+    ## New entry, author field is optional
     newDefinition(definition.word, definition.definition, definition.author, hash)
 
 proc getDefinitionsBySqlStatement*(statement: SqlQuery, args: varargs[string]): seq[Definition] =
@@ -125,6 +128,7 @@ proc getDefinitionsBySqlStatement*(statement: SqlQuery, args: varargs[string]): 
         result = cmp(y.timestamp, x.timestamp)
 
 proc getAllDefinitions*(): seq[Definition] =
+    ## Gets all definitions
     result = getDefinitionsBySqlStatement(sql sqlGetAllDefinitions)
 
 proc getDefinitionsByName*(name: string): seq[Definition] =

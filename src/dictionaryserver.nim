@@ -1,3 +1,10 @@
+## TheDictionary
+## =============
+##
+## TheDictionary is an [Urban Dictionary](https://www.urbandictionary.com/) webserver clone.
+##
+## All definitions are saved using SQLite.
+
 {.define: ssl.}
 import std/[asyncdispatch, asynchttpserver, strutils, sequtils]
 import sequel, dictionary, website, parser
@@ -6,15 +13,15 @@ using
     request: Request
 
 var server: AsyncHttpServer = newAsyncHttpServer()
-const port {.intdefine.}: uint16 = 6969
+const port* {.intdefine.}: uint16 = 6969 ## Server port
 
-proc responseHeaders(): HttpHeaders =
+proc responseHeaders*(): HttpHeaders =
     ## Default http headers
     result = newHttpHeaders(@[
         ("Content-Type", "text/html; charset=utf-8")
     ])
 
-proc serveErrorPage(request; path: seq[string], description: string, httpCode: HttpCode = Http400) {.async.} =
+proc serveErrorPage*(request; path: seq[string], description: string, httpCode: HttpCode = Http400) {.async.} =
     ## Generic error page server
     return request.respond(
         httpCode,
@@ -23,7 +30,7 @@ proc serveErrorPage(request; path: seq[string], description: string, httpCode: H
     )
 
 
-proc serveIndex(request; path: seq[string]) {.async.} =
+proc serveIndex*(request; path: seq[string]) {.async.} =
     ## Serves the index page
     return request.respond(
         Http200,
@@ -31,7 +38,7 @@ proc serveIndex(request; path: seq[string]) {.async.} =
         responseHeaders()
     )
 
-proc serveNewEntryConstruct(request; path: seq[string]) {.async.} =
+proc serveNewEntryConstruct*(request; path: seq[string]) {.async.} =
     ## Serves a page for a new entry
     return request.respond(
         Http200,
@@ -39,12 +46,16 @@ proc serveNewEntryConstruct(request; path: seq[string]) {.async.} =
         responseHeaders()
     )
 
-proc handleNewDefinition(request; path: seq[string]) {.async.} =
-    ## New way to submit a submission
+proc handleNewDefinition*(request; path: seq[string]) {.async.} =
+    ## Processes a submission and serves a success/failure page
     let
         body: string = request.body
         parsed: ParsedSubmitField = body.parseHtmlBodySubmit()
-        status: ValidationResponse = await validateNewEntryAndCommit(parsed.word, parsed.definition, parsed.author)
+        status: ValidationResponse = await validateNewEntryAndCommit(
+            parsed.word,
+            parsed.definition,
+            parsed.author
+        )
 
     case status.success:
     of true:
@@ -56,7 +67,7 @@ proc handleNewDefinition(request; path: seq[string]) {.async.} =
     of false:
         return request.serveErrorPage(path, "Failed to submit your new entry: " & status.details)
 
-proc serveDefinitions(request; path: seq[string]) {.async.} =
+proc serveDefinitions*(request; path: seq[string]) {.async.} =
     ## Queries all definitions or by patterns
     let query: string = block:
         try:
@@ -69,7 +80,7 @@ proc serveDefinitions(request; path: seq[string]) {.async.} =
         responseHeaders()
     )
 
-proc serveDefinitionById(request; path: seq[string]) {.async.} =
+proc serveDefinitionById*(request; path: seq[string]) {.async.} =
     ## Serves a definition queried by its ID
     var id: int
     try:
@@ -83,8 +94,8 @@ proc serveDefinitionById(request; path: seq[string]) {.async.} =
     )
 
 
-proc handleRequest(request) {.async.} =
-    ## Main request handler
+proc handleRequest*(request) {.async.} =
+    ## Main request handler based on path
     let path: seq[string] = block:
         var p: seq[string] = request.url.path.split('/').deduplicate()
         if p[0] == "": p[1 .. ^1]
@@ -119,14 +130,13 @@ proc handleRequest(request) {.async.} =
         return request.serveErrorPage(args, "Not found", Http404)
 
 
-proc runServer() {.async.} =
+proc runServer*() {.async.} =
+    ## Runs the server - listens to requests and responds
     server.listen(Port port)
     while true:
         if server.shouldAcceptRequest():
             await server.acceptRequest(handleRequest)
 
-proc main() =
+when isMainModule:
     initDatabaseTables()
     waitFor runServer()
-when isMainModule:
-    main()

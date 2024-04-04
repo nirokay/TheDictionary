@@ -1,3 +1,15 @@
+## Website module
+## ==============
+##
+## This module implements the HTML sent as a response by the webserver. It is not well optimised, as
+## for each new response, it:
+##
+## * stringifies the HTML
+## * stringifies the CSS and embeds it into the HTML
+## * reads the javascript file from disk and embeds into the HTML
+##
+## But it works! And just for fun with friends this is more than enough :)
+
 import std/[asyncdispatch, strutils, options]
 import websitegenerator
 export websitegenerator
@@ -139,7 +151,7 @@ const
 
 const
     # Css stylesheet:
-    css: CssStyleSheet = block:
+    css*: CssStyleSheet = block: ## Main css stylesheet
         var result = newCssStyleSheet("styles.css")
         result.add(
             "html" -> @[
@@ -205,6 +217,7 @@ type Buttons* = enum
     toIndex, toDefinitions, toSubmitDefinitions
 
 proc addContentBox(html: var HtmlDocument, elements: seq[HtmlElement] = @[p(" ")]) =
+    ## Main content box
     html.add(
         `div`(
             elements
@@ -279,12 +292,13 @@ proc newPage*(name, description: string, generateContentBox: bool = true, script
     if generateContentBox: result.addContentBox()
 
 proc getHtmlDefinition*(definition: Definition): HtmlElement =
+    ## Converts `Definition` to an `HtmlElement` with redundant sussy character replacement for security
     let
         id = definition.id
         timestamp = definition.timestamp
-        word = definition.word.decode()
-        author = definition.author.decode()
-        definition = definition.definition.decode()
+        word = definition.word.replaceAllSussyCharactersDecodeEncode().decode()
+        author = definition.author.replaceAllSussyCharactersDecodeEncode().decode()
+        definition = definition.definition.replaceAllSussyCharactersDecodeEncode().decode()
 
     result = `div`(
         h2(
@@ -296,6 +310,7 @@ proc getHtmlDefinition*(definition: Definition): HtmlElement =
 
 
 proc htmlIndex*(): Future[HtmlDocument] {.async.} =
+    ## HTML - Index page
     result = newPage("TheDictionary", "TheDictionary is a basic Urban Dictionary clone.", false)
     let all: seq[Definition] = getAllDefinitions()
     if all.len() != 0:
@@ -305,6 +320,7 @@ proc htmlIndex*(): Future[HtmlDocument] {.async.} =
         ])
 
 proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
+    ## HTML - Submit page
     result = newPage("TheDictionary - Submit", "", false, "definition_submit.js")
     let
         idWord: string = "submit-word"
@@ -343,11 +359,9 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
     ).setClass(classCenter)])
 
 proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
+    ## HTML - Submit success page
     result = newPage("TheDictionary - Successful submit", "", false, "definition_submit_success.js")
     result.addContentBox(@[
-        `div`(
-            # input()
-        ).setClass(classSearchBar),
         p(
             "Successfully added new definition for word '" & $b(word.replaceAllSussyCharacters()) & "'!" & $br() &
             "You will be redirected in " & $b("3 seconds") & "!"
@@ -355,6 +369,7 @@ proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
     ])
 
 proc htmlDisplaySingleDefinition*(id: int): Future[HtmlDocument] {.async.} =
+    ## HTML - Definition page
     result = newPage("TheDictionary - Definition", "", false)
     let definition: Option[Definition] = getDefinitionById(id)
     if definition.isSome():
@@ -368,6 +383,7 @@ proc htmlDisplaySingleDefinition*(id: int): Future[HtmlDocument] {.async.} =
 
 
 proc htmlDisplayMultipleDefinitions*(query: string = ""): Future[HtmlDocument] {.async.} =
+    ## HTML - (Multiple) Definitions page
     result = newPage("TheDictionary - Definitions", "", false, "definitions.js")
     let definitions: seq[Definition] = (
         if query != "": getDefinitionsByName(query)
@@ -400,6 +416,7 @@ proc htmlDisplayMultipleDefinitions*(query: string = ""): Future[HtmlDocument] {
         ])
 
 proc httpErrorPage*(details: string): Future[HtmlDocument] {.async.} =
+    ## HTML - Error page
     result = newPage("TheDictionary - Error", "", false)
     result.add(
         p(details).setClass(classCenterAll)
