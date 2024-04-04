@@ -6,7 +6,7 @@ function getSearchBar() {
 
 function getQueryParams() {
     let searchBar = getSearchBar();
-    if(searchBar == undefined) {
+    if(searchBar == undefined || searchBar == null) {
         return undefined;
     }
     return encodeURI(searchBar.value);
@@ -15,7 +15,7 @@ function getQueryParams() {
 function searchBarQuery() {
     let query = getQueryParams();
     if(query == undefined) {
-        return alert("Fuck you");
+        return alert("Cannot search, fuck you javascript");
     }
 
     if(query != "") {
