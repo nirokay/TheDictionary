@@ -44,6 +44,9 @@ template withDatabase*(db: untyped, body: untyped) =
     try:
         body
         success = true
+    except DatabaseError as e:
+        echo "Reraising error: " & $e.name
+        raise e
     except CatchableError as e:
         success = false
         echo "[Database error]: " & $e.name & ": " & e.msg & "'"
