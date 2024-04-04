@@ -6,6 +6,7 @@ import sequel, dictionary, parser
 const
     javascriptLocation*: string = "./src/javascript/"
     contentBoxId*: string = "content-display-div"
+    searchBarId*: string = "search-bar-field"
 
     inputFieldsWidth = "92%"
 
@@ -84,7 +85,13 @@ const
     ]
 
     classSearchDiv = "search-bar-div" |> @[
-        centeredMargin,
+        ["margin-left", "auto"],
+        ["margin-right", "auto"],
+        ["margin-top", "auto"],
+        ["margin-bottom", "10px"],
+        display("flex"),
+        alignItems("baseline"),
+        ["flex-wrap", "nowrap"],
         unifiedBorder,
         roundedCorners,
         padding("2px"),
@@ -361,11 +368,23 @@ proc htmlDisplaySingleDefinition*(id: int): Future[HtmlDocument] {.async.} =
 
 
 proc htmlDisplayMultipleDefinitions*(query: string = ""): Future[HtmlDocument] {.async.} =
-    result = newPage("TheDictionary - Definitions", "", false)
+    result = newPage("TheDictionary - Definitions", "", false, "definitions.js")
     let definitions: seq[Definition] = (
         if query != "": getDefinitionsByName(query)
         else: getAllDefinitions()
     )
+
+    # Search bar:
+    result.addToBody(
+        `div`(
+            input("text", searchBarId, "Search"),
+            newElement("button", "Search").add(
+                attr("onclick", "searchBarQuery();")
+            )
+        ).setClass(classSearchDiv)
+    )
+
+    # Definitions:
     if definitions.len() != 0:
         var box: seq[HtmlElement]
         for definition in definitions:
