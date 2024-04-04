@@ -30,6 +30,8 @@ const
     unifiedPadding = padding("10px")
     centeredMargin = ["margin", "auto"]
 
+    overflowHidden = ["overflow", "hidden"]
+
     widthMax = maxWidth("750px")
 
     backgroundHtml = backgroundColour(
@@ -136,16 +138,19 @@ const
         ["margin-top", "5px"],
         ["margin-bottom", "5px"],
         ["word-wrap", "break-word"],
-        ["white-space", "pre-wrap"]
+        ["white-space", "pre-wrap"],
+        overflowHidden
     ]
     classDefinitionDescription = "definition-description" |> @[
         ["margin-top", "10px"],
         ["word-wrap", "break-word"],
-        ["white-space", "pre-wrap"]
+        ["white-space", "pre-wrap"],
+        overflowHidden
     ]
     classDefinitionAuthor = "definition-author" |> @[
         ["word-wrap", "break-word"],
-        ["white-space", "pre-wrap"]
+        ["white-space", "pre-wrap"],
+        overflowHidden
     ]
 
 
@@ -390,10 +395,28 @@ proc htmlDisplayMultipleDefinitions*(query: string = ""): Future[HtmlDocument] {
         else: getAllDefinitions()
     )
 
+    # Small text under header:
+    proc whatIsBeingSearched(params: string): string =
+        try:
+            result = params[1 .. ^2].decode().replaceAllSussyCharacters()
+        except IndexDefect:
+            result = params.replaceAllSussyCharacters()
+
+    let searchInfo: string = (
+        if query != "": "Showing results for '" & $b(whatIsBeingSearched(query)) & "'."
+        else: "Displaying all definitions."
+    )
+
+    result.addToBody(`div`(
+        small(searchInfo)
+    ).setClass(classCenterAll))
+
     # Search bar:
     result.addToBody(
         `div`(
-            input("text", searchBarId, "Search"),
+            input("text", searchBarId, "Search").add(
+                attr("placeholder", "Search query")
+            ),
             newElement("button", "Search").add(
                 attr("onclick", "searchBarQuery();")
             )

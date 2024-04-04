@@ -48,7 +48,7 @@ proc constructHash*(word, definition: string): string =
 proc validateNewEntryAndCommit*(word, definition, author: string): Future[ValidationResponse] {.async.} =
     ## Validates, replaces sussy characters and finally commits new definition to the database if:
     ##
-    ## * hash is known
+    ## * hash is not known
     ## * non-optional fields are not empty
     let
         word = word.strip().replaceAllSussyCharacters()
