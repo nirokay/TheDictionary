@@ -1,5 +1,15 @@
 = Changelog
 
+== v1.1.1
+
+=== Improvements
+
+Executables are now fully standalone: JavaScript is embedded into the executable (just like the SQLite statements).
+
+=== QoL
+
+Added message on startup and added `ctrl+c` hook to graciously close the server.
+
 == v1.1.0
 
 === Visuals
