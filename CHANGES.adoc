@@ -1,0 +1,18 @@
+= Changelog
+
+== v1.1.0
+
+=== Visuals
+
+Reworked CSS.
+
+=== (Potentially) Breaking changes
+
+Reworked the way submissions work. Prior to this they were submitted using the Url path `/submit/{payload}`.
+`payload` being a base64 encoded JSON object. This did not work well with characters outside the ASCII range.
+
+Now submissions are inside the HTTP body request and encoded using URL encoding.
+
+== v1.0.0
+
+Initial push

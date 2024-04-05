@@ -1,22 +1,27 @@
 = THE Dictionary
 :author: nirokay
+:copyright: GPL-3.0
 
 == About
 
-**THE Dictionary** is a basic and crappy clone of online, user-run dictionaries
-like https://www.urbandictionary.com/[Urban Dictionary].
+**THE Dictionary** is a basic and crappy clone of online, user-run
+dictionaries like https://www.urbandictionary.com/[Urban Dictionary].
+
+== Changelog
+
+See the <<CHANGES.adoc, changelog here>>.
 
 == Capabilities
 
 === New definitions
 
-Well, kinda necessary for a user-run dictionary... you can add your new
-definitions at `/submit/`.
+Well, kinda necessary for a user-run dictionary... you can add your
+new definitions at `/submit/`.
 
 === Querying definitions
 
-All definition queries are available under `/definitions/`, while a single
-definition is available under `/definition/{id}` (for example:
+All definition queries are available under `/definitions/`, while a
+single definition is available under `/definition/{id}` (for example:
 `definition/24`).
 
 You can also search for definitions of a specific word with
@@ -30,8 +35,8 @@ SQLite query parameters are also available at your disposal:
 == Security
 
 The security of this webserver is unknown and probably contains bugs.
-Running this server on the open internet is not recommended. Use a local
-network instead! :)
+Running this server on the open internet is not recommended. Use a
+local network instead! :)
 
 == Licence
 
