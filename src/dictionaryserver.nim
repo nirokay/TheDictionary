@@ -130,9 +130,17 @@ proc handleRequest*(request) {.async.} =
         return request.serveErrorPage(args, "Not found", Http404)
 
 
+proc ctrlc() {.noconv.} =
+    echo "\nShutting down server..."
+    server.close()
+    quit(QuitSuccess)
+setControlCHook(ctrlc)
+
+
 proc runServer*() {.async.} =
     ## Runs the server - listens to requests and responds
     server.listen(Port port)
+    echo "Server listening on port " & $port
     while true:
         if server.shouldAcceptRequest():
             await server.acceptRequest(handleRequest)

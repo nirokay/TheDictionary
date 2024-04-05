@@ -10,17 +10,42 @@
 ##
 ## But it works! And just for fun with friends this is more than enough :)
 
-import std/[asyncdispatch, strutils, options]
+import std/[asyncdispatch, strutils, options, tables, os]
 import websitegenerator
 export websitegenerator
 import sequel, dictionary, parser
 
 const
-    javascriptLocation*: string = "./src/javascript/"
     contentBoxId*: string = "content-display-div"
     searchBarId*: string = "search-bar-field"
 
     inputFieldsWidth = "92%"
+
+const
+    javascriptLocation*: string = "./src/javascript/"
+    javascriptScripts*: Table[string, string] = block:
+        var result: Table[string, string]
+        for kind, element in walkDir(javascriptLocation, true):
+            if unlikely kind in [pcDir, pcLinkToDir]: continue
+            if likely element.endsWith(".js"):
+                result[element] = ""
+
+        for i, _ in result:
+            let path: string = javascriptLocation & i
+            try:
+                result[i] = path.readFile()
+            except CatchableError as e:
+                echo "Cannot open file '" & path & "'."
+                echo $e.name & ": " & e.msg
+                result[i] = "window.onload = function() { alert('Could not load javascript for this page - page may not function correctly...') }"
+
+        result
+
+proc getJavascript(scriptName: string): string =
+    ## Attempts to return javascript from the `const Table`,
+    ## if it fails it attempts to read from disk
+    if javascriptScripts.hasKey(scriptName):
+        return javascriptScripts[scriptName]
 
 
 const
@@ -248,9 +273,8 @@ proc newPage*(name, description: string, generateContentBox: bool = true, script
 
     # Script:
     if scriptPath != "":
-        let rawScript: string = readFile(javascriptLocation & scriptPath)
         result.addToHead(
-            script(rawScript).add(
+            script(scriptPath.getJavascript()).add(
                 attr("defer")
             )
         )
