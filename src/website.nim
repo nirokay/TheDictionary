@@ -23,6 +23,7 @@ const
 
 const
     javascriptLocation*: string = "./src/javascript/"
+    defaultJavascriptNotAvailable*: string = "window.onload = function() { alert('Could not load javascript for this page - page may not function correctly...') }"
     javascriptScripts*: Table[string, string] = block:
         var result: Table[string, string]
         for kind, element in walkDir(javascriptLocation, true):
@@ -37,16 +38,16 @@ const
             except CatchableError as e:
                 echo "Cannot open file '" & path & "'."
                 echo $e.name & ": " & e.msg
-                result[i] = "window.onload = function() { alert('Could not load javascript for this page - page may not function correctly...') }"
+                result[i] = defaultJavascriptNotAvailable
 
         result
 
 proc getJavascript(scriptName: string): string =
-    ## Attempts to return javascript from the `const Table`,
-    ## if it fails it attempts to read from disk
+    ## Attempts to return javascript from the `const Table`
     if javascriptScripts.hasKey(scriptName):
-        return javascriptScripts[scriptName]
-
+        result = javascriptScripts[scriptName]
+    else:
+        result = defaultJavascriptNotAvailable
 
 const
     # Css values:
@@ -104,6 +105,16 @@ const
     classCenterAll = "center-everything" |> @[
         centeredMargin,
         textCenter
+    ]
+
+    classFlexBox = "div-flex-box" |> @[
+        centeredMargin,
+        textCenter,
+        display("flex"),
+        alignItems("center"),
+        ["flex", "auto"],
+        ["flex-wrap", "wrap"],
+        ["flex-basis", "auto"]
     ]
 
     classContentDiv = "content-display" |> @[
@@ -228,6 +239,8 @@ const
             classCenter,
             classCenterAll,
 
+            classFlexBox,
+
             classContentDiv,
             classSearchBar,
             classSearchDiv,
@@ -320,6 +333,10 @@ proc newPage*(name, description: string, generateContentBox: bool = true, script
     )
     if generateContentBox: result.addContentBox()
 
+proc box(element: HtmlElement): HtmlElement =
+    ## Sets the `classDefinition` class to the `HtmlElement`
+    return element.setClass(classDefinition)
+
 proc getHtmlDefinition*(definition: Definition): HtmlElement =
     ## Converts `Definition` to an `HtmlElement` with redundant sussy character replacement for security
     let
@@ -329,14 +346,23 @@ proc getHtmlDefinition*(definition: Definition): HtmlElement =
         author = definition.author.replaceAllSussyCharactersDecodeEncode().decode()
         definition = definition.definition.replaceAllSussyCharactersDecodeEncode().decode()
 
-    result = `div`(
+    result = box `div`(
         h2(
             $a("/definition/" & $id, word) # Direct to the post itself
         ).setClass(classDefinitionWord),
         p(definition).setClass(classDefinitionDescription),
         small("by <b>" & author & "</b> @ " & timestamp & " UTC").setClass(classDefinitionAuthor)
-    ).setClass(classDefinition)
+    )
 
+proc linksToSources(): HtmlElement =
+    proc button(link, text: string): HtmlElement =
+        result = a(link, text).setClass(classRedirectButton)
+    result = `div`(
+        `div`(
+            button("https://github.com/nirokay/TheDictionary", "TheDictionary - Source-Code"),
+            button("https://github.com/nirokay/TheDictionary/releases/latest", "TheDictionary - Releases")
+        ).setClass(classFlexBox)
+    )
 
 proc htmlIndex*(): Future[HtmlDocument] {.async.} =
     ## HTML - Index page
@@ -345,7 +371,22 @@ proc htmlIndex*(): Future[HtmlDocument] {.async.} =
     if all.len() != 0:
         result.addContentBox(@[
             h2("Latest addition"),
-            all[0].getHtmlDefinition()
+            all[0].getHtmlDefinition(),
+
+            hr(),
+
+            h2("About"),
+            box `div`(
+                p(
+                    "TheDictionary is a basic " & $a("https://urbandictionary.com/", "Urban Dictionary") & " clone." & $br() &
+                    "This is a community-/user-run dictionary, that lets you submit and view definitions."
+                )
+            ),
+
+            hr(),
+
+            h2("Links"),
+            box linksToSources()
         ])
 
 proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
@@ -392,7 +433,7 @@ proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
     result = newPage("TheDictionary - Successful submit", "", false, "definition_submit_success.js")
     result.addContentBox(@[
         p(
-            "Successfully added new definition for word '" & $b(word.replaceAllSussyCharacters()) & "'!" & $br() &
+            "Successfully added new definition for word '" & $b(word.decode().replaceAllSussyCharacters()) & "'!" & $br() &
             "You will be redirected in " & $b("3 seconds") & "!"
         ).setClass(classCenterAll)
     ])
