@@ -35,9 +35,6 @@ template withDatabase*(db: untyped, body: untyped) =
     ## withDatabase db:
     ##     db.exec(sql"DROP TABLE definitions;")
     ## ```
-    runnableExamples:
-        withDatabase db:
-            db.exec(sql"DROP TABLE definitions;")
     let db: DbConn = getDatabase()
     db.exec(sql"BEGIN TRANSACTION")
     var success: bool = true
