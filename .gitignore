@@ -8,3 +8,6 @@
 
 # Databases:
 *.db
+
+# Docs:
+docs/

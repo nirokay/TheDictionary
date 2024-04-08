@@ -1,9 +1,7 @@
-## TheDictionary
-## =============
+## dictionaryserver
+## ================
 ##
-## TheDictionary is an [Urban Dictionary](https://www.urbandictionary.com/) webserver clone.
-##
-## All definitions are saved using SQLite.
+## This module houses the webserver to send POST and GET requests to.
 
 {.define: ssl.}
 import std/[asyncdispatch, asynchttpserver, strutils, sequtils]
@@ -145,6 +143,6 @@ proc runServer*() {.async.} =
         if server.shouldAcceptRequest():
             await server.acceptRequest(handleRequest)
 
-when isMainModule:
-    initDatabaseTables()
-    waitFor runServer()
+
+initDatabaseTables()
+waitFor runServer()
