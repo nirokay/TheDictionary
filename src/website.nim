@@ -273,11 +273,11 @@ proc li(elements: seq[HtmlElement]): HtmlElement = li($elements)
 
 proc newPage*(name, description: string, generateContentBox: bool = true, scriptPath: string = ""): HtmlDocument =
     ## Generalised HTML page generator
-    result = newDocument(name & ".html")
+    result = newHtmlDocument(name & ".html")
 
     # Meta stuff:
     result.addToHead(
-        comment(" Html and Css generated using website generator: https://github.com/nirokay/websitegenerator "),
+        htmlComment(" Html and Css generated using website generator: https://github.com/nirokay/websitegenerator "),
         charset("utf-8"),
         viewport("width=device-width, initial-scale=1"),
         title(name),
@@ -294,7 +294,7 @@ proc newPage*(name, description: string, generateContentBox: bool = true, script
 
     # Css:
     result.addToHead(
-        newElement("style",
+        newHtmlElement("style",
             $css
         )
     )
@@ -397,36 +397,39 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
         idDefinition: string = "submit-definition"
         idAuthor: string = "submit-author"
 
-        replaceMe: string = "#[REPLACE_ME]#" # 10.000 IQ move
     proc newField(id, text, name, placeholder: string, isTextarea: bool = false): HtmlElement =
         result = li(@[
             label(id, text),
             br(),
             (
-                if isTextArea: newElement("textarea", replaceMe).add( # 100.000 IQ move
+                if isTextArea: textarea("").add(
                     attr("placeholder", placeholder),
                     attr("rows", "10"),
                     attr("id", id),
                     attr("name", name)
                 )
-                else: input("text", id, name).add(attr("placeholder", placeholder))
+                else: input("text", id).add(
+                    attr("placeholder", placeholder),
+                    attr("name", name)
+                )
             )
         ])
-    result.addContentBox(@[form(@[
-        ul(@[
-            newField(idWord, "Word:", "word", "My interesting word", false),
-            text replace(
-                $newField(idDefinition, "Definition:", "definition", "My interesting definition", true), replaceMe, "" # 1.000.000 IQ move
+    result.addContentBox(@[
+        form(
+            ul(
+                newField(idWord, "Word:", "word", "My interesting word", false),
+                newField(idDefinition, "Definition:", "definition", "My interesting definition", true),
+                newField(idAuthor, "Author:", "author", "My name (optional)", false),
+                `div`(newHtmlElement("button", "Submit").add(
+                    attr("type", "submit")
+                )).setClass(classCenterAll)
             ),
-            newField(idAuthor, "Author:", "author", "My name (optional)", false),
-            `div`(newElement("button", "Submit").add(
-                attr("type", "submit")
-            )).setClass(classCenterAll)
-        ]),
-    ], "/handle-submit").add(
-        attr("method", "post"),
-        attr("accept-charset", "utf-8")
-    ).setClass(classCenter)])
+        ).add(
+            attr("action", "/handle-submit"),
+            attr("method", "post"),
+            attr("accept-charset", "utf-8")
+        ).setClass(classCenter)
+    ])
 
 proc htmlSubmitSuccess*(word: string): Future[HtmlDocument] {.async.} =
     ## HTML - Submit success page
@@ -479,10 +482,11 @@ proc htmlDisplayMultipleDefinitions*(query: string = ""): Future[HtmlDocument] {
     # Search bar:
     result.addToBody(
         `div`(
-            input("text", searchBarId, "Search").add(
-                attr("placeholder", "Search query")
+            input("text", searchBarId).add(
+                attr("placeholder", "Search query"),
+                attr("name", "Search")
             ),
-            newElement("button", "Search").add(
+            newHtmlElement("button", "Search").add(
                 attr("onclick", "searchBarQuery();")
             )
         ).setClass(classSearchDiv)
