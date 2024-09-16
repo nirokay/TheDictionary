@@ -368,26 +368,30 @@ proc htmlIndex*(): Future[HtmlDocument] {.async.} =
     ## HTML - Index page
     result = newPage("TheDictionary", "TheDictionary is a basic Urban Dictionary clone.", false)
     let all: seq[Definition] = getAllDefinitions()
+
+    var elements: seq[HtmlElement]
     if all.len() != 0:
-        result.addContentBox(@[
+        elements &= @[
             h2("Latest addition"),
             all[0].getHtmlDefinition(),
-
             hr(),
+        ]
+    elements &= @[
+        h2("About"),
+        box `div`(
+            p(
+                "TheDictionary is a basic " & $a("https://urbandictionary.com/", "Urban Dictionary") & " clone." & $br() &
+                "This is a community-/user-run dictionary, that lets you submit and view definitions."
+            )
+        ),
 
-            h2("About"),
-            box `div`(
-                p(
-                    "TheDictionary is a basic " & $a("https://urbandictionary.com/", "Urban Dictionary") & " clone." & $br() &
-                    "This is a community-/user-run dictionary, that lets you submit and view definitions."
-                )
-            ),
+        hr(),
 
-            hr(),
+        h2("Links"),
+        box linksToSources()
+    ]
+    result.addContentBox(elements)
 
-            h2("Links"),
-            box linksToSources()
-        ])
 
 proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
     ## HTML - Submit page
