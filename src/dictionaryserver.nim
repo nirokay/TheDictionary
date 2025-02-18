@@ -92,7 +92,7 @@ proc serveDefinitionById*(request; path: seq[string]) {.async.} =
     )
 
 
-proc handleRequest*(request) {.async.} =
+proc handleRequest*(request) {.async, gcsafe.} =
     ## Main request handler based on path
     let path: seq[string] = block:
         var p: seq[string] = request.url.path.split('/').deduplicate()
@@ -141,7 +141,12 @@ proc runServer*() {.async.} =
     echo "Server listening on port " & $port
     while true:
         if server.shouldAcceptRequest():
-            await server.acceptRequest(handleRequest)
+            try:
+                await server.acceptRequest(handleRequest)
+            except CatchableError as e:
+                echo "Caught error '" & $e.name & "': " & e.msg
+            except Defect as e:
+                echo "Caught defect '" & $e.name & "': " & e.msg
 
 
 initDatabaseTables()

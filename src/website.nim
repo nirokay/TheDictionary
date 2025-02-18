@@ -420,14 +420,14 @@ proc htmlSubmitDefinition*(): Future[HtmlDocument] {.async.} =
         ])
     result.addContentBox(@[
         form(
-            ul(
+            ul(@[
                 newField(idWord, "Word:", "word", "My interesting word", false),
                 newField(idDefinition, "Definition:", "definition", "My interesting definition", true),
                 newField(idAuthor, "Author:", "author", "My name (optional)", false),
                 `div`(newHtmlElement("button", "Submit").add(
                     attr("type", "submit")
                 )).setClass(classCenterAll)
-            ),
+            ]),
         ).add(
             attr("action", "/handle-submit"),
             attr("method", "post"),
