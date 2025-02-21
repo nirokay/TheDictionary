@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
 
-TASKS=(
-    "nimble build -d:release"
-    "nimble build -d:release -d:mingw"
-)
+BIN="dictionaryserver"
 
-echo "Starting build release script"
-for task in "${TASKS[@]}"; do
-    echo "Running: '$task'"
-    $task
-done
-echo "Finished build release script"
+# Build native (linux):
+nimble build -d:release && mv "$BIN" "${BIN}_${OSTYPE}-${HOSTTYPE}"
+
+# Build windows:
+nimble build -d:release -d:mingw && mv "$BIN.exe" "${BIN}_windows-${HOSTTYPE}.exe"
